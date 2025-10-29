@@ -22,7 +22,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.prop.TableDrivenPropertyChecks.forAll
 
-class CheckUkBasedSpec extends SpecBase with MockitoSugar with TableDrivenPropertyChecks{
+class CheckUkBasedSpec extends SpecBase with MockitoSugar with TableDrivenPropertyChecks {
 
   ".isUkBasedNetp when provided with " - {
     val ukBasedCountryCode: String = "GB"
@@ -34,14 +34,12 @@ class CheckUkBasedSpec extends SpecBase with MockitoSugar with TableDrivenProper
     val ukBasedOtherAddress = arbitraryOtherAddress.copy(issuedBy = ukBasedCountryCode)
     val nonUkOtherAddress = arbitraryOtherAddress.copy(issuedBy = nonUkCountryCode)
 
-    "with either VatCustomerInfo or EtmpOtherAddress with Uk based address should return true" in {
+    "when EtmpOtherAddress is present and is a Uk based address should return true" in {
       val testCases = Table(
         ("vatInfo", "otherAddress"),
         (Some(ukBasedVatInfo), Some(ukBasedOtherAddress)),
-        (Some(ukBasedVatInfo), Some(nonUkOtherAddress)),
         (Some(nonUkVatInfo), Some(ukBasedOtherAddress)),
-        (Some(ukBasedVatInfo), None),
-        (None, Some(ukBasedOtherAddress)),
+        (None, Some(ukBasedOtherAddress))
       )
 
       forAll(testCases) { (vatConditions, otherAddressConditions) =>
@@ -50,17 +48,35 @@ class CheckUkBasedSpec extends SpecBase with MockitoSugar with TableDrivenProper
         result mustBe true
       }
     }
-    "only VatCustomerInfo WITHOUT Uk based address should return false" in {
+    "when EtmpOtherAddress is present and is not a UK based address should return false" in {
+      val testCases = Table(
+        ("vatInfo", "otherAddress"),
+        (Some(ukBasedVatInfo), Some(nonUkOtherAddress)),
+        (Some(nonUkVatInfo), Some(nonUkOtherAddress)),
+        (None, Some(nonUkOtherAddress))
+      )
+
+      forAll(testCases) { (vatConditions, otherAddressConditions) =>
+        val result = CheckUkBased.isUkBasedNetp(vatCustomerInfo = vatConditions, otherAddress = otherAddressConditions)
+
+        result mustBe false
+      }
+    }
+    "when EtmpOtherAddress is NOT present and the Vat Info is Uk based should return true" in {
+
+      val result = CheckUkBased.isUkBasedNetp(vatCustomerInfo = Some(ukBasedVatInfo), otherAddress = None)
+
+      result mustBe true
+    }
+
+    "when EtmpOtherAddress is NOT present and the Vat Info is Not Uk based should return false" in {
+
       val result = CheckUkBased.isUkBasedNetp(vatCustomerInfo = Some(nonUkVatInfo), otherAddress = None)
 
       result mustBe false
     }
-    "only EtmpOtherAddress WITHOUT Uk based address should return false" in {
-      val result = CheckUkBased.isUkBasedNetp(vatCustomerInfo = None, otherAddress = Some(nonUkOtherAddress))
 
-      result mustBe false
-    }
-    "Neither VatCustomerInfo or EtmpOtherAddress should throw an error" in {
+    "when neither VatCustomerInfo or EtmpOtherAddress should throw an error" in {
 
       val exception = intercept[IllegalStateException] {
         CheckUkBased.isUkBasedNetp(vatCustomerInfo = None, otherAddress = None)

@@ -16,10 +16,11 @@
 
 package controllers.amend
 
+import config.Constants.ukCountryCodeAreaPrefix
 import controllers.GetClientCompanyName
 import controllers.actions.AuthenticatedControllerComponents
 import logging.Logging
-import models.UserAnswers
+import models.{Country, InternationalAddress, UserAnswers}
 import models.domain.PreviousRegistration
 import models.previousRegistrations.PreviousRegistrationDetails
 import pages.*
@@ -57,6 +58,11 @@ class ChangeRegistrationController @Inject()(
       val thisPage = ChangeRegistrationPage
 
       val clientBasedInUk = request.userAnswers.get(BusinessBasedInUKPage).getOrElse(false)
+      val clientHasUkAddress: Option[Country] = request.userAnswers.get(ClientCountryBasedPage)
+      val countryIsUk: Boolean = clientHasUkAddress match
+        case Some(someCountry) => someCountry.code.startsWith(ukCountryCodeAreaPrefix)
+        case None => false
+      val hasEtmpOtherAddress: Option[InternationalAddress] = request.userAnswers.get(ClientBusinessAddressPage)
 
       getClientCompanyName(waypoints) { companyName =>
 
@@ -65,7 +71,7 @@ class ChangeRegistrationController @Inject()(
             BusinessBasedInUKSummary.rowWithoutAction(waypoints, request.userAnswers),
             ClientHasVatNumberSummary.rowWithoutAction(waypoints, request.userAnswers),
             ClientVatNumberSummary.rowWithoutAction(waypoints, request.userAnswers),
-            if (!clientBasedInUk) ClientCountryBasedSummary.row(waypoints, request.userAnswers, thisPage) else None,
+            if (countryIsUk) None else ClientCountryBasedSummary.row(waypoints, request.userAnswers, thisPage),
             ClientTaxReferenceSummary.row(waypoints, request.userAnswers, thisPage),
             if (request.userAnswers.vatInfo.isDefined) {
               VatRegistrationDetailsSummary.changeRegVatBusinessNameRow(waypoints, request.userAnswers, thisPage, clientBasedInUk)
@@ -75,8 +81,13 @@ class ChangeRegistrationController @Inject()(
             ClientHasUtrNumberSummary.rowWithoutAction(waypoints, request.userAnswers),
             ClientUtrNumberSummary.rowWithoutAction(waypoints, request.userAnswers),
             ClientsNinoNumberSummary.row(waypoints, request.userAnswers, thisPage),
-            VatRegistrationDetailsSummary.changeRegBusinessAddressRow(waypoints, request.userAnswers, thisPage),
-            if (clientBasedInUk) ClientBusinessAddressSummary.changeUkBasedRegRow(waypoints, request.userAnswers, thisPage) else ClientBusinessAddressSummary.row(waypoints, request.userAnswers, thisPage)
+            if(hasEtmpOtherAddress.isDefined && countryIsUk){
+              ClientBusinessAddressSummary.changeUkBasedRegRow(waypoints, request.userAnswers, thisPage)
+            } else if (hasEtmpOtherAddress.isDefined && !countryIsUk) {
+              ClientBusinessAddressSummary.row(waypoints, request.userAnswers, thisPage)
+            } else {
+              VatRegistrationDetailsSummary.changeRegBusinessAddressRow(waypoints, request.userAnswers, thisPage)
+            }
           ).flatten
         )
 

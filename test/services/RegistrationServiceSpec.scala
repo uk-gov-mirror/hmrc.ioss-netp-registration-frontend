@@ -50,7 +50,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.CheckUkBased.isUkBasedNetp
 import utils.FutureSyntax.FutureOps
 
-import scala.util.Try
 
 class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
@@ -234,8 +233,8 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       val exception = intercept[IllegalStateException] {
         service.toUserAnswers(userAnswersId, nonUkRegistrationWrapper).failed
       }
-        exception.getMessage mustBe
-          "Unable to identify if client is based in the UK. Client requires either Vat Customer Info or an Etmp Other Address from ETMP for amend journey."
+      exception.getMessage mustBe
+        "Unable to identify if client is based in the UK. Client requires either Vat Customer Info or an Etmp Other Address from ETMP for amend journey."
     }
 
     "must throw an Illegal State Exception when country doesn't exist" in {
@@ -258,7 +257,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       whenReady(result) { exp =>
         exp mustBe a[IllegalStateException]
         exp.getMessage mustBe
-          s"Unable to retrieve a Country from the Country Code [$nonExistentCountryCode] provided in the Vat information returned from ETMP for amend journey."
+          s"Unable to find country $nonExistentCountryCode"
       }
     }
   }
@@ -272,80 +271,55 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
     val ukVatAnswers = emptyUserAnswers.copy(vatInfo = Some(ukVatInfo))
     val noVatUserAnswers = emptyUserAnswers.copy(vatInfo = None)
     val nonUkOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value.copy(issuedBy = nonUkCountryCode)
-    val ukOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value.copy(issuedBy = ukCountryCode)
 
-    "When user has vatInfo and is not uk based should set userAnswers ClientCountryBasedPage to country from vat info" in {
+    "When user has EtmpOtherAddress set ClientCountryBasedPage as this country regardless of Vat Address" in {
 
-      val result: UserAnswers = registrationService
-        .setClientCountry(userAnswers = nonUkVatAnswers, optionEtmpOtherAddress = None, hasUkBasedAddress = false).success.value
-
-      val expectedUserAnswers: UserAnswers = nonUkVatAnswers
-        .set(ClientCountryBasedPage, Country("DE", "Germany")).success.value
-
-      result mustBe expectedUserAnswers
-    }
-    "When user does NOT have vatInfo and is not uk based should set userAnswers ClientCountryBasedPage to country from EtmpOtherAddress" in {
-
-      val result: UserAnswers = registrationService
-        .setClientCountry(userAnswers = noVatUserAnswers, optionEtmpOtherAddress = Some(nonUkOtherAddress), hasUkBasedAddress = false).success.value
-
-      val expectedUserAnswers: UserAnswers = noVatUserAnswers
-        .set(ClientCountryBasedPage, Country("DE", "Germany")).success.value
-
-      result mustBe expectedUserAnswers
-    }
-    "When hasUkBasedAddress is true return the userAnswers unchanged regardless of other values" in {
-      val testCases = Table(
-        ("userAnswers", "otherAddress"),
-        (ukVatAnswers, Some(ukOtherAddress)),
+      val etmpTestCases = Table(
+        ("userAnswers", "EtmpOtherAddress"),
         (ukVatAnswers, Some(nonUkOtherAddress)),
-        (ukVatAnswers, None),
-        (nonUkVatAnswers, Some(ukOtherAddress)),
         (nonUkVatAnswers, Some(nonUkOtherAddress)),
-        (nonUkVatAnswers, None),
-        (noVatUserAnswers, Some(ukOtherAddress)),
-        (noVatUserAnswers, Some(nonUkOtherAddress)),
-        (noVatUserAnswers, None),
+        (noVatUserAnswers, Some(nonUkOtherAddress))
       )
 
-      forAll(testCases) { (userAnswers, otherAddress) =>
-
+      forAll(etmpTestCases) { (userAnswers, etmpOtherAddress) =>
         val result: UserAnswers = registrationService
-          .setClientCountry(userAnswers = userAnswers, optionEtmpOtherAddress = otherAddress, hasUkBasedAddress = true).success.value
+          .setClientCountry(userAnswers = userAnswers, optionEtmpOtherAddress = etmpOtherAddress).success.value
 
-        result mustBe userAnswers
+        val expectedUserAnswers: UserAnswers = userAnswers
+          .set(ClientCountryBasedPage, Country("DE", "Germany")).success.value
+
+        result mustBe expectedUserAnswers
       }
     }
-    "If no vatInfo has been provided and optionally EtmpOtherAddress is a none throw an error" in {
 
-      val exception = intercept[IllegalStateException] {
-        registrationService
-          .setClientCountry(userAnswers = noVatUserAnswers, optionEtmpOtherAddress = None, hasUkBasedAddress = false)
-      }
-      exception.getMessage mustBe "Etmp Other Address must be present if client does not have a Vat number."
+    "When user does NOT have Some(EtmpOtherAddress) set ClientCountryBasedPage to country from the Vat address" in {
+
+      val result: UserAnswers = registrationService
+        .setClientCountry(userAnswers = ukVatAnswers, optionEtmpOtherAddress = None).success.value
+
+      val expectedUserAnswers: UserAnswers = ukVatAnswers
+        .set(ClientCountryBasedPage, Country("GB", "United Kingdom")).success.value
+
+      result mustBe expectedUserAnswers
+    }
+
+    "When neither value is available for address return userAnswers unchanged" in {
+
+      val result: UserAnswers = registrationService
+        .setClientCountry(userAnswers = noVatUserAnswers, optionEtmpOtherAddress = None).success.value
+
+      val expectedUserAnswers: UserAnswers = noVatUserAnswers
+
+      result mustBe expectedUserAnswers
     }
   }
 
   ".setNonVatAddressDetails" - {
     val nonUkCountryCode: String = "DE"
     val etmpOtherAddress: EtmpOtherAddress = arbitraryEtmpOtherAddress.arbitrary.sample.value.copy(issuedBy = nonUkCountryCode)
-    "when vatInfo is available in userAnswers return userAnswers unchanged regardless of otherAddress" in {
+    "when EtmpOtherAddress is available return userAnswers with businessAddress updated" in {
 
-      val testCases = Table(
-        ("userAnswers", "otherAddress"),
-        (emptyUserAnswersWithVatInfo, Some(etmpOtherAddress)),
-        (emptyUserAnswersWithVatInfo, None),
-      )
-      forAll(testCases) { (userAnswers, otherAddress) =>
-        val result = registrationService
-          .setNonVatAddressDetails(userAnswers = userAnswers, maybeOtherAddress = otherAddress).success.value
-
-        result mustBe emptyUserAnswersWithVatInfo
-      }
-    }
-    "when no vatInfo is present in userAnswers and EtmpOtherAddress is present should set userAnswers ClientBusinessAddressPage & ClientBusinessNamePage" in {
-
-      val result: UserAnswers = registrationService
+      val result = registrationService
         .setNonVatAddressDetails(userAnswers = emptyUserAnswers, maybeOtherAddress = Some(etmpOtherAddress)).success.value
 
       val expectedUserAnswers: UserAnswers = emptyUserAnswers
@@ -354,15 +328,17 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
       result mustBe expectedUserAnswers
     }
-    "when no vatInfo is present and EtmpOtherAddress is not present should throw an error" in {
 
-      val exception = intercept[IllegalStateException] {
-        registrationService
-          .setNonVatAddressDetails(userAnswers = emptyUserAnswers, maybeOtherAddress = None)
-      }
+    "when EtmpOtherAddress is not present return userAnswers unchanged" in {
 
-      exception.getMessage mustBe "Unable to retrieve a Trading name from Other Address, required for client business naming without vat for for amend journey."
+      val result: UserAnswers = registrationService
+        .setNonVatAddressDetails(userAnswers = emptyUserAnswers, maybeOtherAddress = None).success.value
+
+      val expectedUserAnswers: UserAnswers = emptyUserAnswers
+
+      result mustBe expectedUserAnswers
     }
+
   }
 
   ".getTaxIdentifierAndNum" - {
@@ -457,12 +433,10 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       .set(AllWebsites, convertWebsite(registrationWrapper.etmpDisplayRegistration.schemeDetails.websites)).success.value
 
 
-    if (!isUkBased && registrationWrapper.vatInfo.isDefined) {
-      userAnswersPreCountry.set(ClientCountryBasedPage, getCountry(registrationWrapper.vatInfo.get.desAddress.countryCode)).success.value
-    } else if (!isUkBased && registrationWrapper.vatInfo.isEmpty) {
+    if (registrationWrapper.etmpDisplayRegistration.otherAddress.isDefined) {
       userAnswersPreCountry.set(ClientCountryBasedPage, getCountry(registrationWrapper.etmpDisplayRegistration.otherAddress.get.issuedBy)).success.value
     } else {
-      userAnswersPreCountry
+      userAnswersPreCountry.set(ClientCountryBasedPage, getCountry(registrationWrapper.vatInfo.get.desAddress.countryCode)).success.value
     }
   }
 

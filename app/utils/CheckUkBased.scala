@@ -25,12 +25,10 @@ object CheckUkBased {
   def isUkBasedNetp(vatCustomerInfo: Option[VatCustomerInfo], otherAddress: Option[EtmpOtherAddress]): Boolean = {
 
     (vatCustomerInfo, otherAddress) match {
-      case (Some(vatInfo), Some(address)) =>
-        vatInfo.desAddress.countryCode.startsWith(ukCountryCodeAreaPrefix) || address.issuedBy.startsWith(ukCountryCodeAreaPrefix)
+      case (_, Some(address)) =>
+        address.issuedBy.startsWith(ukCountryCodeAreaPrefix)
       case (Some(vatInfo), None) =>
         vatInfo.desAddress.countryCode.startsWith(ukCountryCodeAreaPrefix)
-      case (None, Some(address)) =>
-        address.issuedBy.startsWith(ukCountryCodeAreaPrefix)
       case (None, None) =>
         throw new IllegalStateException(s"Unable to identify if client is based in the UK. " +
           s"Client requires either Vat Customer Info or an Etmp Other Address from ETMP for amend journey.")
