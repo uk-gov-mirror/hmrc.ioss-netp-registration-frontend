@@ -20,12 +20,14 @@ import controllers.GetCountry
 import controllers.actions.*
 import forms.vatEuDetails.EuTaxReferenceFormProvider
 import models.Index
+import models.requests.DataRequest
 import pages.Waypoints
 import pages.vatEuDetails.EuTaxReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps
 import views.html.vatEuDetails.EuTaxReferenceView
 
@@ -74,6 +76,9 @@ class EuTaxReferenceController @Inject()(
           value =>
             coreRegistrationValidationService.searchEuTaxId(value, country.code).flatMap {
 
+              case _ if waypoints.inAmend =>
+                updateAnswersAndRedirect(waypoints, countryIndex, request, value)
+
               case Some(activeMatch) if activeMatch.isActiveTrader =>
                 Redirect(controllers.routes.ClientAlreadyRegisteredController.onPageLoad()).toFuture
 
@@ -92,5 +97,12 @@ class EuTaxReferenceController @Inject()(
             }
         )
       }
+  }
+
+  private def updateAnswersAndRedirect(waypoints: Waypoints, countryIndex: Index, request: DataRequest[AnyContent], euTaxRef: String) = {
+    for {
+      updatedAnswers <- Future.fromTry(request.userAnswers.set(EuTaxReferencePage(countryIndex), euTaxRef))
+      _ <- cc.sessionRepository.set(updatedAnswers)
+    } yield Redirect(EuTaxReferencePage(countryIndex).navigate(waypoints, request.userAnswers, updatedAnswers).route)
   }
 }

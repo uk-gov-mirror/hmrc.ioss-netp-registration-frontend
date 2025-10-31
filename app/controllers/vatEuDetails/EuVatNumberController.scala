@@ -27,6 +27,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps
 import views.html.vatEuDetails.EuVatNumberView
 
@@ -81,10 +82,10 @@ class EuVatNumberController @Inject()(
 
               euVrn =>
                 coreRegistrationValidationService.searchEuVrn(euVrn, country.code).flatMap {
-                  case Some(activeMatch) if activeMatch.isActiveTrader =>
+                  case Some(activeMatch) if activeMatch.isActiveTrader && !waypoints.inAmend =>
                     Redirect(controllers.routes.ClientAlreadyRegisteredController.onPageLoad()).toFuture
 
-                  case Some(activeMatch) if activeMatch.isQuarantinedTrader(clock) =>
+                  case Some(activeMatch) if activeMatch.isQuarantinedTrader(clock) && !waypoints.inAmend =>
                     Redirect(
                       controllers.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
                         activeMatch.memberState,
