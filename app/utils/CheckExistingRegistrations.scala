@@ -28,7 +28,7 @@ object CheckExistingRegistrations extends Logging {
 
   def existingPreviousRegistration(country: Country, existingPreviousRegistration: Seq[PreviousRegistration]): Boolean = {
     existingPreviousRegistration.exists { previousRegistration =>
-      previousRegistration.country == country
+      previousRegistration.previousEuCountry == country
     }
   }
 

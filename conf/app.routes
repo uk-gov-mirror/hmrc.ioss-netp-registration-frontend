@@ -205,10 +205,10 @@ GET        /client-email-updated/:journeyId                                contr
 
 # Amend Registration
 
-GET        /start-amend-journey/:iossNumber                                controllers.amend.StartAmendJourneyController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, iossNumber: String)
+GET        /start-amend-journey/:iossNumber                                controllers.amend.StartAmendJourneyController.onPageLoad(iossNumber: String)
 
-GET         /change-your-registration                                      controllers.amend.ChangeRegistrationController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /change-your-registration                                       controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+GET         /change-your-registration                                      controllers.amend.ChangeRegistrationController.onPageLoad()
+POST        /change-your-registration                                      controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 # Save for later section
 GET        /progress-saved                                                  controllers.saveAndComeBack.SavedProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, continueUrl: RedirectUrl)

@@ -20,17 +20,18 @@ import controllers.GetCountry
 import controllers.actions.*
 import forms.previousRegistrations.PreviousIossNumberFormProvider
 import logging.Logging
-import models.{Country, Index, PreviousScheme}
 import models.PreviousScheme.IOSSWOI
 import models.domain.PreviousSchemeNumbers
 import models.previousRegistrations.{IossRegistrationNumberValidation, NonCompliantDetails}
 import models.requests.DataRequest
+import models.{Country, Index, PreviousScheme}
 import pages.Waypoints
 import pages.previousRegistrations.{ClientHasIntermediaryPage, PreviousIossNumberPage, PreviousSchemePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.FutureOps
 import views.html.previousRegistrations.PreviousIossNumberView
 
@@ -50,7 +51,7 @@ class PreviousIossNumberController @Inject()(
   protected val controllerComponents: MessagesControllerComponents = cc
 
 
-  def onPageLoad(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData().async {
+  def onPageLoad(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend).async {
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) { country =>
         val form = formProvider(country)
@@ -64,7 +65,7 @@ class PreviousIossNumberController @Inject()(
       }
   }
 
-  def onSubmit(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData().async {
+  def onSubmit(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend).async {
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) { country =>
 

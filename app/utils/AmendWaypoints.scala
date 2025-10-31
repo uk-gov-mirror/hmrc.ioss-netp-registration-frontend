@@ -17,7 +17,7 @@
 package utils
 
 import pages.amend.ChangeRegistrationPage
-import pages.{NonEmptyWaypoints, Waypoints, Waypoint}
+import pages.{CheckAnswersPage, CheckYourAnswersPage, NonEmptyWaypoints, Waypoints}
 
 object AmendWaypoints {
   implicit class AmendWaypointsOps(waypoints: Waypoints) {
@@ -27,6 +27,18 @@ object AmendWaypoints {
           nonEmptyWaypoints.waypoints.toList.map(_.urlFragment).contains(ChangeRegistrationPage.urlFragment)
         case _ =>
           false
+    }
+
+    def getNextCheckYourAnswersPageFromWaypoints: Option[CheckAnswersPage] = {
+      waypoints match {
+        case nonEmptyWaypoints: NonEmptyWaypoints =>
+          List(ChangeRegistrationPage, CheckYourAnswersPage).find { page =>
+            nonEmptyWaypoints.waypoints.toList.map(_.urlFragment).contains(page.urlFragment)
+          }
+
+        case _ =>
+          None
+      }
     }
   }
 }

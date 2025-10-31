@@ -19,10 +19,9 @@ package pages.vatEuDetails
 import controllers.vatEuDetails.routes
 import models.UserAnswers
 import pages.amend.ChangeRegistrationPage
-import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, Waypoint, Waypoints}
+import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import queries.IossNumberQuery
 import utils.AmendWaypoints.AmendWaypointsOps
 
 case object DeleteAllEuDetailsPage extends QuestionPage[Boolean] {

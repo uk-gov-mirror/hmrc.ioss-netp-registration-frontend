@@ -18,12 +18,13 @@ package base
 
 import controllers.actions.*
 import generators.Generators
-import models.{BusinessContactDetails, CheckMode, Index, IntermediaryDetails, UserAnswers, Website}
 import models.domain.VatCustomerInfo
-import org.scalatest.{OptionValues, TryValues}
+import models.etmp.display.RegistrationWrapper
+import models.{BusinessContactDetails, CheckMode, Index, IntermediaryDetails, UserAnswers, Website}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.{OptionValues, TryValues}
 import pages.*
 import pages.previousRegistrations.*
 import pages.tradingNames.*
@@ -89,7 +90,7 @@ trait SpecBase
 
   val vatNumber = "GB123456789"
   val intermediaryNumber = "IN9001234567"
-  val iossNumber = "IN9001234568"
+  val iossNumber = "IM9001234568"
   val intermediaryName = "Intermediary Company Name"
   val vrn: Vrn = Vrn("123456789")
   val utr: String = "1234567890"
@@ -120,9 +121,14 @@ trait SpecBase
   val businessContactDetails: BusinessContactDetails =
     BusinessContactDetails(fullName = "name", telephoneNumber = "0111 2223334", emailAddress = "email@example.com")
 
+  val registrationWrapper: RegistrationWrapper = arbitraryRegistrationWrapper.arbitrary.sample.value
+
   protected def applicationBuilder(
                                     userAnswers: Option[UserAnswers] = None,
-                                    clock: Option[Clock] = None
+                                    clock: Option[Clock] = None,
+                                    intermediaryNumber: Option[String] = None,
+                                    iossNumber: Option[String] = None,
+                                    registrationWrapper: Option[RegistrationWrapper] = None
                                   ): GuiceApplicationBuilder = {
 
     val clockToBind = clock.getOrElse(stubClockAtArbitraryDate)
@@ -134,7 +140,9 @@ trait SpecBase
         bind[ClientIdentifierAction].to[FakeClientIdentifierAction],
         bind[ClientValidationFilterProvider].to[FakeClientValidationFilterProvider],
         bind[ClientDeclarationFilterProvider].to[FakeClientDeclarationFilterProvider],
-        bind[Clock].toInstance(clockToBind),
+        bind[DataRequiredAction].toInstance(new FakeDataRequiredAction(userAnswers, intermediaryNumber.getOrElse(this.intermediaryNumber), registrationWrapper.getOrElse(this.registrationWrapper))),
+        bind[RegistrationRequiredAction].toInstance(new FakeRegistrationRequiredAction(userAnswers, iossNumber.getOrElse(this.iossNumber), registrationWrapper.getOrElse(this.registrationWrapper))),
+        bind[Clock].toInstance(clockToBind)
       )
   }
 

@@ -19,28 +19,29 @@ package controllers.previousRegistrations
 import controllers.actions.*
 import forms.previousRegistrations.PreviousEuCountryFormProvider
 import models.Index
-import pages.previousRegistrations.PreviousEuCountryPage
 import pages.Waypoints
+import pages.previousRegistrations.PreviousEuCountryPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.previousRegistrations.AllPreviousRegistrationsQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.previousRegistrations.PreviousEuCountryView
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.*
+import views.html.previousRegistrations.PreviousEuCountryView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PreviousEuCountryController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       cc: AuthenticatedControllerComponents,
-                                       formProvider: PreviousEuCountryFormProvider,
-                                       view: PreviousEuCountryView
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                             override val messagesApi: MessagesApi,
+                                             cc: AuthenticatedControllerComponents,
+                                             formProvider: PreviousEuCountryFormProvider,
+                                             view: PreviousEuCountryView
+                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-  
-  def onPageLoad(waypoints: Waypoints, index: Index): Action[AnyContent] = cc.identifyAndGetData() {
+
+  def onPageLoad(waypoints: Waypoints, index: Index): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend) {
     implicit request =>
 
       val form = formProvider(index, request.userAnswers.get(AllPreviousRegistrationsQuery).getOrElse(Seq.empty).map(_.previousEuCountry))
@@ -53,7 +54,7 @@ class PreviousEuCountryController @Inject()(
       Ok(view(preparedForm, waypoints, index))
   }
 
-  def onSubmit(waypoints: Waypoints, index: Index): Action[AnyContent] = cc.identifyAndGetData().async {
+  def onSubmit(waypoints: Waypoints, index: Index): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend).async {
     implicit request =>
 
       val form = formProvider(index, request.userAnswers.get(AllPreviousRegistrationsQuery).getOrElse(Seq.empty).map(_.previousEuCountry))
@@ -65,7 +66,7 @@ class PreviousEuCountryController @Inject()(
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviousEuCountryPage(index), value))
-            _              <- cc.sessionRepository.set(updatedAnswers)
+            _ <- cc.sessionRepository.set(updatedAnswers)
           } yield Redirect(PreviousEuCountryPage(index).navigate(waypoints, request.userAnswers, updatedAnswers).route)
       )
   }

@@ -18,13 +18,17 @@ package controllers.previousRegistrations
 
 import controllers.actions.*
 import forms.previousRegistrations.PreviouslyRegisteredFormProvider
-import pages.previousRegistrations.PreviouslyRegisteredPage
 import pages.Waypoints
+import pages.previousRegistrations.PreviouslyRegisteredPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.previousRegistrations.{AllPreviousRegistrationsRawQuery, DeriveNumberOfPreviousRegistrations}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.AmendWaypoints.AmendWaypointsOps
+import utils.CheckExistingRegistrations
+import utils.FutureSyntax.*
 import views.html.previousRegistrations.PreviouslyRegisteredView
-import utils.FutureSyntax._
+import utils.CheckExistingRegistrations.cleanup
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,10 +41,10 @@ class PreviouslyRegisteredController @Inject()(
                                               )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   private val form = formProvider()
-  
+
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndGetData() {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend) {
     implicit request =>
       val userAnswers = request.userAnswers
 
@@ -52,7 +56,7 @@ class PreviouslyRegisteredController @Inject()(
       Ok(view(preparedForm, waypoints))
   }
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndGetData().async {
+  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend).async {
     implicit request =>
 
       form.bindFromRequest().fold(
@@ -62,8 +66,9 @@ class PreviouslyRegisteredController @Inject()(
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(PreviouslyRegisteredPage, value))
-            _              <- cc.sessionRepository.set(updatedAnswers)
-          } yield Redirect(PreviouslyRegisteredPage.navigate(waypoints, request.userAnswers, updatedAnswers).route)
+            finalAnswers <- Future.fromTry(cleanup(updatedAnswers, DeriveNumberOfPreviousRegistrations, AllPreviousRegistrationsRawQuery))
+            _ <- cc.sessionRepository.set(finalAnswers)
+          } yield Redirect(PreviouslyRegisteredPage.navigate(waypoints, request.userAnswers, finalAnswers).route)
       )
   }
 }

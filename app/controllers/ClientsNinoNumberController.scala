@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FutureSyntax.FutureOps
 import views.html.ClientsNinoNumberView
 
-import java.time.{Clock, LocalDate}
+import java.time.Clock
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -58,8 +58,6 @@ class ClientsNinoNumberController @Inject()(
 
   def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndGetData().async {
     implicit request =>
-
-      val quarantineCutOffDate = LocalDate.now(clock).minusYears(2)
 
       form.bindFromRequest().fold(
         formWithErrors =>

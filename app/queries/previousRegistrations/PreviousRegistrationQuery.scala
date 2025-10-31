@@ -17,11 +17,11 @@
 package queries.previousRegistrations
 
 import models.Index
-import models.previousRegistrations.PreviousRegistrationDetails
+import models.domain.PreviousRegistration
 import play.api.libs.json.JsPath
 import queries.{Gettable, Settable}
 
-case class PreviousRegistrationQuery(index: Index) extends Gettable[PreviousRegistrationDetails] with Settable[PreviousRegistrationDetails] {
+case class PreviousRegistrationQuery(index: Index) extends Gettable[PreviousRegistration] with Settable[PreviousRegistration] {
 
   override def path: JsPath = JsPath \ "previousRegistrations" \ index.position
 }

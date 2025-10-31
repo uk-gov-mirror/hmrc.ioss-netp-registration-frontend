@@ -18,20 +18,19 @@ package services.core
 
 import connectors.core.ValidateCoreRegistrationConnector
 import logging.Logging
-import models.{Country, PreviousScheme}
 import models.CountryWithValidationDetails.convertTaxIdentifierForTransfer
 import models.audit.CoreRegistrationAuditModel
 import models.core.*
 import models.core.Match.ossDateFormatter
 import models.iossRegistration.IossEtmpExclusionReason
 import models.requests.DataRequest
+import models.{Country, PreviousScheme}
 import services.AuditService
 import services.ioss.IossRegistrationService
 import services.oss.OssRegistrationService
 import uk.gov.hmrc.domain.Vrn
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.Clock
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -40,8 +39,7 @@ class CoreRegistrationValidationService @Inject()(
                                                    connector: ValidateCoreRegistrationConnector,
                                                    iossRegistrationService: IossRegistrationService,
                                                    ossRegistrationService: OssRegistrationService,
-                                                   auditService: AuditService,
-                                                   clock: Clock
+                                                   auditService: AuditService
                                                  )(implicit ec: ExecutionContext) extends Logging {
   
   def searchUkVrn(vrn: Vrn)(implicit hc:HeaderCarrier, request: DataRequest[_]): Future[Option[Match]] = {

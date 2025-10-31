@@ -23,5 +23,4 @@ case class EtmpAdministration(messageType: EtmpMessageType, regimeID: String = "
 object EtmpAdministration {
 
   implicit val format: OFormat[EtmpAdministration] = Json.format[EtmpAdministration]
-
 }

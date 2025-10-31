@@ -20,8 +20,8 @@ import base.SpecBase
 import config.Constants.{maxSchemes, maxTradingNames, maxWebsites}
 import formats.Format.eisDateFormatter
 import models.PreviousScheme.toEmtpSchemeType
-import models.domain.PreviousSchemeDetails
-import models.previousRegistrations.{NonCompliantDetails, PreviousRegistrationDetails}
+import models.domain.{PreviousRegistration, PreviousSchemeDetails}
+import models.previousRegistrations.NonCompliantDetails
 import models.vatEuDetails.*
 import models.{BusinessContactDetails, CountryWithValidationDetails, PreviousScheme, TradingName, UserAnswers, Website}
 import org.scalacheck.Arbitrary.arbitrary
@@ -30,7 +30,7 @@ import pages.previousRegistrations.PreviouslyRegisteredPage
 import pages.tradingNames.HasTradingNamePage
 import pages.vatEuDetails.HasFixedEstablishmentPage
 import pages.{BusinessContactDetailsPage, ClientHasVatNumberPage, ClientVatNumberPage}
-import play.api.libs.json.{JsError, Json, JsSuccess}
+import play.api.libs.json.{JsError, JsSuccess, Json}
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousRegistrations.AllPreviousRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -84,7 +84,7 @@ class EtmpRegistrationRequestSpec extends SpecBase {
     ".buildEtmpRegistrationRequest" - {
 
       val tradingNames: List[TradingName] = Gen.listOfN(maxTradingNames, arbitrary[TradingName]).sample.value
-      val previousRegistration: PreviousRegistrationDetails = PreviousRegistrationDetails(
+      val previousRegistration: PreviousRegistration = PreviousRegistration(
         previousEuCountry = arbitraryCountry.arbitrary.sample.value,
         previousSchemesDetails = Gen.listOfN(
           maxSchemes, PreviousSchemeDetails(
@@ -97,7 +97,7 @@ class EtmpRegistrationRequestSpec extends SpecBase {
           )
         ).sample.value
       )
-      val previousEuRegistrations: List[PreviousRegistrationDetails] = Gen.listOfN(numberOfRegistrations, previousRegistration).sample.value
+      val previousEuRegistrations: List[PreviousRegistration] = Gen.listOfN(numberOfRegistrations, previousRegistration).sample.value
       val euRegistration: EuDetails = EuDetails(
         euCountry = arbitraryCountry.arbitrary.sample.value,
         hasFixedEstablishment = Some(true),

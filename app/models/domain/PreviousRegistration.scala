@@ -17,11 +17,11 @@
 package models.domain
 
 import models.etmp.EtmpPreviousEuRegistrationDetails
-import models.{Country, PreviousScheme}
 import models.previousRegistrations.NonCompliantDetails
+import models.{Country, PreviousScheme}
 import play.api.libs.json.{Json, OFormat}
 
-case class PreviousRegistration(country: Country, previousSchemesDetails: Seq[PreviousSchemeDetails])
+case class PreviousRegistration(previousEuCountry: Country, previousSchemesDetails: Seq[PreviousSchemeDetails])
 
 object PreviousRegistration {
 
@@ -47,7 +47,7 @@ object PreviousRegistration {
       }.groupBy(_._1)
 
     countrySchemaDetailsMapping.map { case (country, countryPreviousSchemaDetails) =>
-      PreviousRegistration(country = country, previousSchemesDetails = countryPreviousSchemaDetails.map(_._2))
+      PreviousRegistration(previousEuCountry = country, previousSchemesDetails = countryPreviousSchemaDetails.map(_._2))
     }.toList
 
   }
@@ -76,12 +76,12 @@ object PreviousSchemeDetails {
       previousScheme = previousSchemeType,
       previousSchemeNumbers = PreviousSchemeNumbers(
         previousSchemeNumber =
-        if(previousSchemeType == PreviousScheme.OSSU) {
-          convertEuVatNumber(etmpPreviousEuRegistrationDetails.issuedBy, Some(etmpPreviousEuRegistrationDetails.registrationNumber))
-            .getOrElse(etmpPreviousEuRegistrationDetails.registrationNumber)
-        } else {
-          etmpPreviousEuRegistrationDetails.registrationNumber
-        }
+          if (previousSchemeType == PreviousScheme.OSSU) {
+            convertEuVatNumber(etmpPreviousEuRegistrationDetails.issuedBy, Some(etmpPreviousEuRegistrationDetails.registrationNumber))
+              .getOrElse(etmpPreviousEuRegistrationDetails.registrationNumber)
+          } else {
+            etmpPreviousEuRegistrationDetails.registrationNumber
+          }
       ),
       nonCompliantDetails = None
     )

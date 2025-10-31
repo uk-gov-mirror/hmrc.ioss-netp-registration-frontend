@@ -18,8 +18,7 @@ package controllers.previousRegistrations
 
 import base.SpecBase
 import forms.previousRegistrations.DeletePreviousSchemeFormProvider
-import models.domain.{PreviousSchemeDetails, PreviousSchemeNumbers}
-import models.previousRegistrations.PreviousRegistrationDetails
+import models.domain.{PreviousRegistration, PreviousSchemeDetails, PreviousSchemeNumbers}
 import models.{Country, Index, PreviousScheme}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -48,7 +47,7 @@ class DeletePreviousSchemeControllerSpec extends SpecBase with MockitoSugar {
   private val index = Index(0)
   private val previousSchemeNumbers = PreviousSchemeNumbers("012345678")
   private val previousScheme = PreviousSchemeDetails(PreviousScheme.OSSU, previousSchemeNumbers)
-  private val previousRegistration = PreviousRegistrationDetails(country, Seq(previousScheme))
+  private val previousRegistration = PreviousRegistration(country, Seq(previousScheme))
 
 
   private val baseUserAnswers =

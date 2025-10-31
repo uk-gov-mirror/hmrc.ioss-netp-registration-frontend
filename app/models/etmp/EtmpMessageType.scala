@@ -23,10 +23,10 @@ sealed trait EtmpMessageType
 object EtmpMessageType extends Enumerable.Implicits {
 
   case object IOSSIntAddClient extends WithName("IOSSIntAddClient") with EtmpMessageType
-  case object IOSSIntAmend extends WithName("IOSSIntAmend") with EtmpMessageType
+  case object IOSSIntAmendClient extends WithName("IOSSIntAmendClient") with EtmpMessageType
 
   val values: Seq[EtmpMessageType] = Seq(
-    IOSSIntAddClient, IOSSIntAmend
+    IOSSIntAddClient, IOSSIntAmendClient
   )
 
   implicit val enumerable: Enumerable[EtmpMessageType] =

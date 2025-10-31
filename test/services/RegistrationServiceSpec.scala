@@ -18,13 +18,11 @@ package services
 
 import base.SpecBase
 import connectors.RegistrationConnector
-import models.domain.{PreviousSchemeDetails, VatCustomerInfo}
+import models.domain.{PreviousRegistration, PreviousSchemeDetails, VatCustomerInfo}
 import models.etmp.*
 import models.etmp.EtmpIdType.{FTR, NINO, UTR, VRN}
 import models.etmp.display.*
 import models.responses.UnexpectedResponseStatus
-import models.etmp.display.{EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
-import models.previousRegistrations.PreviousRegistrationDetails
 import models.responses.etmp.EtmpEnrolmentResponse
 import models.vatEuDetails.{EuDetails, RegistrationType, TradingNameAndBusinessAddress}
 import models.{BusinessContactDetails, ClientBusinessName, Country, InternationalAddress, TradingName, UserAnswers, Website}
@@ -32,6 +30,8 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatest.prop.TableDrivenPropertyChecks.forAll
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.previousRegistrations.PreviouslyRegisteredPage
 import pages.tradingNames.HasTradingNamePage
@@ -39,13 +39,10 @@ import pages.vatEuDetails.HasFixedEstablishmentPage
 import pages.{BusinessBasedInUKPage, BusinessContactDetailsPage, ClientBusinessAddressPage, ClientBusinessNamePage, ClientCountryBasedPage, ClientHasUtrNumberPage, ClientHasVatNumberPage, ClientTaxReferencePage, ClientUtrNumberPage, ClientVatNumberPage, ClientsNinoNumberPage}
 import play.api.test.Helpers.running
 import queries.AllWebsites
-import testutils.RegistrationData
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousRegistrations.AllPreviousRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
-import testutils.WireMockHelper
-import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.prop.TableDrivenPropertyChecks.forAll
+import testutils.{RegistrationData, WireMockHelper}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.CheckUkBased.isUkBasedNetp
 import utils.FutureSyntax.FutureOps
@@ -234,8 +231,8 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       val exception = intercept[IllegalStateException] {
         service.toUserAnswers(userAnswersId, nonUkRegistrationWrapper).failed
       }
-        exception.getMessage mustBe
-          "Unable to identify if client is based in the UK. Client requires either Vat Customer Info or an Etmp Other Address from ETMP for amend journey."
+      exception.getMessage mustBe
+        "Unable to identify if client is based in the UK. Client requires either Vat Customer Info or an Etmp Other Address from ETMP for amend journey."
     }
 
     "must throw an Illegal State Exception when country doesn't exist" in {
@@ -417,7 +414,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
 
     val displayRegistration: EtmpDisplayRegistration = registrationWrapper.etmpDisplayRegistration
     val convertedTradingNamesUA: Seq[TradingName] = convertTradingNames(displayRegistration.tradingNames)
-    val convertedPreviousEuRegistrationDetails: Seq[PreviousRegistrationDetails] =
+    val convertedPreviousEuRegistrationDetails: Seq[PreviousRegistration] =
       convertEtmpPreviousEuRegistrations(displayRegistration.schemeDetails.previousEURegistrationDetails)
     val convertedEuFixedEstablishmentDetails: Seq[EuDetails] =
       convertEuFixedEstablishmentDetails(displayRegistration.schemeDetails.euRegistrationDetails)
@@ -476,7 +473,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
     etmpWebsites.map(etmpWebsite => Website(etmpWebsite.websiteAddress)).toList
   }
 
-  private def convertEtmpPreviousEuRegistrations(allEtmpPreviousEuRegistrationDetails: Seq[EtmpPreviousEuRegistrationDetails]): List[PreviousRegistrationDetails] = {
+  private def convertEtmpPreviousEuRegistrations(allEtmpPreviousEuRegistrationDetails: Seq[EtmpPreviousEuRegistrationDetails]): List[PreviousRegistration] = {
     val countrySchemaDetailsMapping: Map[Country, Seq[(Country, PreviousSchemeDetails)]] =
       allEtmpPreviousEuRegistrationDetails.map { etmpPreviousEuRegistrationDetails =>
         val country = Country.fromCountryCodeUnsafe(etmpPreviousEuRegistrationDetails.issuedBy)
@@ -487,7 +484,7 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
       }.groupBy(_._1)
 
     countrySchemaDetailsMapping.map { case (country, countryPreviousSchemaDetails) =>
-      PreviousRegistrationDetails(previousEuCountry = country, previousSchemesDetails = countryPreviousSchemaDetails.map(_._2))
+      PreviousRegistration(previousEuCountry = country, previousSchemesDetails = countryPreviousSchemaDetails.map(_._2))
     }.toList
   }
 

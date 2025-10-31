@@ -19,10 +19,7 @@ package pages.vatEuDetails
 import controllers.vatEuDetails.routes
 import models.{Index, UserAnswers}
 import pages.*
-import pages.amend.ChangeRegistrationPage
 import play.api.mvc.Call
-import queries.IossNumberQuery
-import utils.AmendWaypoints.AmendWaypointsOps
 
 final case class CheckEuDetailsAnswersPage(countryIndex: Index) extends CheckAnswersPage {
 

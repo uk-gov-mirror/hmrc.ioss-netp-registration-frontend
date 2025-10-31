@@ -45,8 +45,8 @@ class AuthenticatedIdentifierAction @Inject()(
                                                val parser: BodyParsers.Default,
                                                intermediaryRegistrationService: IntermediaryRegistrationService,
                                                urlBuilderService: UrlBuilderService
-                                             )
-                                             (implicit val executionContext: ExecutionContext) extends IdentifierAction with AuthorisedFunctions with Logging {
+                                             )(implicit val executionContext: ExecutionContext)
+  extends IdentifierAction with AuthorisedFunctions with Logging {
 
   private lazy val redirectPolicy = (OnlyRelative | AbsoluteWithHostnameFromAllowlist(config.allowedRedirectUrls: _*))
 

@@ -19,8 +19,8 @@ package controllers.vatEuDetails
 import controllers.actions.*
 import forms.vatEuDetails.EuCountryFormProvider
 import models.{Country, Index, UserAnswers}
-import pages.vatEuDetails.*
 import pages.Waypoints
+import pages.vatEuDetails.*
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

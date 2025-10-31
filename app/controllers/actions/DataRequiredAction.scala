@@ -24,16 +24,19 @@ import models.etmp.display.RegistrationWrapper
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.responses.ErrorResponse
 import play.api.mvc.Results.Redirect
+import play.api.mvc.{ActionRefiner, Result}
 import queries.IossNumberQuery
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import play.api.mvc.{ActionRefiner, Result}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class DataRequiredActionImpl @Inject()(registrationConnector: RegistrationConnector,
-                                       isInAmendMode: Boolean)(implicit val executionContext: ExecutionContext) extends ActionRefiner[OptionalDataRequest, DataRequest] with Logging {
+class DataRequiredActionImpl @Inject()(
+                                        registrationConnector: RegistrationConnector,
+                                        isInAmendMode: Boolean
+                                      )(implicit val executionContext: ExecutionContext)
+  extends ActionRefiner[OptionalDataRequest, DataRequest] with Logging {
 
   override protected def refine[A](request: OptionalDataRequest[A]): Future[Either[Result, DataRequest[A]]] = {
 

@@ -20,10 +20,10 @@ import controllers.vatEuDetails.routes
 import models.{Country, Index, UserAnswers}
 import pages.amend.ChangeRegistrationPage
 import pages.website.WebsitePage
-import pages.{AddItemPage, CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoint, Waypoints}
+import pages.{AddItemPage, CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.{JsObject, JsPath}
 import play.api.mvc.Call
-import queries.{Derivable, IossNumberQuery}
+import queries.Derivable
 import queries.euDetails.DeriveNumberOfEuRegistrations
 import utils.AmendWaypoints.AmendWaypointsOps
 

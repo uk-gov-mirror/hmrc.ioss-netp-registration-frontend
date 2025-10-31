@@ -16,7 +16,8 @@
 
 package generators
 
-import models.domain.PreviousSchemeNumbers
+import models.PreviousScheme
+import models.domain.{PreviousRegistration, PreviousSchemeDetails, PreviousSchemeNumbers}
 import models.etmp.*
 import models.etmp.amend.EtmpAmendRegistrationChangeLog
 import models.etmp.display.{EtmpDisplayCustomerIdentification, EtmpDisplayEuRegistrationDetails, EtmpDisplayRegistration, EtmpDisplaySchemeDetails, RegistrationWrapper}
@@ -202,6 +203,47 @@ trait EtmpModelGenerators {
           registrationNumber = registrationNumber,
           schemeType = schemeType,
           intermediaryNumber = Some(intermediaryNumber)
+        )
+      }
+    }
+  }
+  
+  implicit lazy val arbitraryPreviousSchemeNumbers: Arbitrary[PreviousSchemeNumbers] = {
+    Arbitrary {
+      for {
+        previousSchemeNumber <- arbitrary[String]
+      } yield {
+        PreviousSchemeNumbers(
+          previousSchemeNumber = previousSchemeNumber
+        )
+      }
+    }
+  }
+  
+  implicit lazy val arbitraryPreviousSchemeDetails: Arbitrary[PreviousSchemeDetails] = {
+    Arbitrary {
+      for {
+        previousScheme <- Gen.oneOf(PreviousScheme.values)
+        previousSchemeNumbers <- arbitraryPreviousSchemeNumbers.arbitrary
+      } yield {
+        PreviousSchemeDetails(
+          previousScheme = previousScheme,
+          previousSchemeNumbers = previousSchemeNumbers,
+          nonCompliantDetails = None
+        )
+      }
+    }
+  }
+  
+  implicit lazy val arbitraryPreviousRegistration: Arbitrary[PreviousRegistration] = {
+    Arbitrary {
+      for {
+        previousEuCountry <- arbitraryCountry.arbitrary
+        previousSchemesDetails <- Gen.listOfN(2, arbitraryPreviousSchemeDetails.arbitrary)
+      } yield {
+        PreviousRegistration(
+          previousEuCountry = previousEuCountry,
+          previousSchemesDetails = previousSchemesDetails
         )
       }
     }

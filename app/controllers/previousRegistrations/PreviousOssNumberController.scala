@@ -23,33 +23,34 @@ import models.domain.PreviousSchemeNumbers
 import models.previousRegistrations.{NonCompliantDetails, PreviousSchemeHintText, SchemeDetailsWithOptionalVatNumber}
 import models.requests.DataRequest
 import models.{Country, CountryWithValidationDetails, Index, PreviousScheme, WithName}
-import pages.previousRegistrations.{PreviousOssNumberPage, PreviousSchemePage}
 import pages.Waypoints
+import pages.previousRegistrations.{PreviousOssNumberPage, PreviousSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.previousRegistrations.AllPreviousSchemesForCountryWithOptionalVatNumberQuery
 import services.core.CoreRegistrationValidationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.previousRegistrations.PreviousOssNumberView
+import utils.AmendWaypoints.AmendWaypointsOps
 import utils.FutureSyntax.*
+import views.html.previousRegistrations.PreviousOssNumberView
 
 import java.time.Clock
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PreviousOssNumberController @Inject()(
-                                        override val messagesApi: MessagesApi,
-                                        cc: AuthenticatedControllerComponents,
-                                        formProvider: PreviousOssNumberFormProvider,
-                                        view: PreviousOssNumberView,
-                                        coreRegistrationValidationService: CoreRegistrationValidationService,
-                                        clock: Clock
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with GetCountry with PreviousNonComplianceAnswers {
+                                             override val messagesApi: MessagesApi,
+                                             cc: AuthenticatedControllerComponents,
+                                             formProvider: PreviousOssNumberFormProvider,
+                                             view: PreviousOssNumberView,
+                                             coreRegistrationValidationService: CoreRegistrationValidationService,
+                                             clock: Clock
+                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with GetCountry with PreviousNonComplianceAnswers {
 
   protected val controllerComponents: MessagesControllerComponents = cc
-  
-  def onPageLoad(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData().async {
+
+  def onPageLoad(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend).async {
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) {
         country =>
@@ -90,7 +91,7 @@ class PreviousOssNumberController @Inject()(
       case Some(currentSchemeType) => previousSchemes.filterNot(_ == currentSchemeType)
       case None => previousSchemes
     }
-    
+
     val isEditing = maybeCurrentAnswer.isDefined
     val schemeCountOfSameType = previousSchemes.count {
       case scheme if maybeCurrentAnswer.isDefined =>
@@ -124,7 +125,7 @@ class PreviousOssNumberController @Inject()(
     }
   }
 
-  def onSubmit(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData().async {
+  def onSubmit(waypoints: Waypoints, countryIndex: Index, schemeIndex: Index): Action[AnyContent] = cc.identifyAndGetData(inAmend = waypoints.inAmend).async {
     implicit request =>
       getPreviousCountry(waypoints, countryIndex) {
         country =>
@@ -168,32 +169,32 @@ class PreviousOssNumberController @Inject()(
                                                previousScheme: WithName with PreviousScheme
                                              )(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
-      coreRegistrationValidationService.searchScheme(
-        searchNumber = value,
-        previousScheme = previousScheme,
-        intermediaryNumber = None,
-        countryCode = country.code
-      ).flatMap {
+    coreRegistrationValidationService.searchScheme(
+      searchNumber = value,
+      previousScheme = previousScheme,
+      intermediaryNumber = None,
+      countryCode = country.code
+    ).flatMap {
 
-        case Some(activeMatch) if activeMatch.isQuarantinedTrader(clock) =>
-          Redirect(
-            controllers.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
-              activeMatch.memberState,
-              activeMatch.getEffectiveDate)
-          ).toFuture
+      case Some(activeMatch) if activeMatch.isQuarantinedTrader(clock) =>
+        Redirect(
+          controllers.routes.OtherCountryExcludedAndQuarantinedController.onPageLoad(
+            activeMatch.memberState,
+            activeMatch.getEffectiveDate)
+        ).toFuture
 
-        case Some(activeMatch) =>
-          saveAndRedirect(
-            countryIndex,
-            schemeIndex,
-            value,
-            previousScheme,
-            waypoints,
-            Some(NonCompliantDetails(nonCompliantReturns = activeMatch.nonCompliantReturns, nonCompliantPayments = activeMatch.nonCompliantPayments))
-          )
-        case _ =>
-          saveAndRedirect(countryIndex, schemeIndex, value, previousScheme, waypoints, None)
-      }
+      case Some(activeMatch) =>
+        saveAndRedirect(
+          countryIndex,
+          schemeIndex,
+          value,
+          previousScheme,
+          waypoints,
+          Some(NonCompliantDetails(nonCompliantReturns = activeMatch.nonCompliantReturns, nonCompliantPayments = activeMatch.nonCompliantPayments))
+        )
+      case _ =>
+        saveAndRedirect(countryIndex, schemeIndex, value, previousScheme, waypoints, None)
+    }
 
   }
 

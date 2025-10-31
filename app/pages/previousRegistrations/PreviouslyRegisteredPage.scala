@@ -18,10 +18,11 @@ package pages.previousRegistrations
 
 import models.{Index, UserAnswers}
 import pages.vatEuDetails.HasFixedEstablishmentPage
-import pages.{JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
+import pages.{CheckYourAnswersPage, JourneyRecoveryPage, NonEmptyWaypoints, Page, QuestionPage, RecoveryOps, Waypoints}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 import queries.previousRegistrations.DeriveNumberOfPreviousRegistrations
+import utils.AmendWaypoints.AmendWaypointsOps
 
 case object PreviouslyRegisteredPage extends QuestionPage[Boolean] {
 
@@ -43,6 +44,7 @@ case object PreviouslyRegisteredPage extends QuestionPage[Boolean] {
       case (Some(true), Some(size)) if size > 0 => AddPreviousRegistrationPage()
       case (Some(true), _) => PreviousEuCountryPage(Index(0))
       case (Some(false), Some(size)) if size > 0 => DeleteAllPreviousRegistrationsPage
+      case (Some(false), _) => waypoints.getNextCheckYourAnswersPageFromWaypoints.getOrElse(CheckYourAnswersPage)
       case _ => JourneyRecoveryPage
     }
 }

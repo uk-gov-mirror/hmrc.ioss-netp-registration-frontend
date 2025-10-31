@@ -59,7 +59,7 @@ class StartAmendJourneyControllerSpec extends SpecBase with MockitoSugar with Be
         .build()
 
       running(application) {
-        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(waypoints, iossNumber).url)
+        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(iossNumber).url)
 
         val result = route(application, request).value
 
@@ -78,7 +78,7 @@ class StartAmendJourneyControllerSpec extends SpecBase with MockitoSugar with Be
         .build()
 
       running(application) {
-        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(waypoints, iossNumber).url)
+        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(iossNumber).url)
 
         val result = route(application, request).value
 
@@ -104,7 +104,7 @@ class StartAmendJourneyControllerSpec extends SpecBase with MockitoSugar with Be
         .build()
 
       running(application) {
-        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(waypoints, iossNumber).url)
+        val request = FakeRequest(GET, controllers.amend.routes.StartAmendJourneyController.onPageLoad(iossNumber).url)
 
         val result = route(application, request).value
 

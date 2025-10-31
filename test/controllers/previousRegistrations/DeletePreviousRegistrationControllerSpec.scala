@@ -19,10 +19,9 @@ package controllers.previousRegistrations
 import base.SpecBase
 import controllers.routes
 import forms.previousRegistrations.DeletePreviousRegistrationFormProvider
-import models.domain.{PreviousSchemeDetails, PreviousSchemeNumbers}
-import models.previousRegistrations.PreviousRegistrationDetails
+import models.domain.{PreviousRegistration, PreviousSchemeDetails, PreviousSchemeNumbers}
 import models.{Country, Index, PreviousScheme}
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.Waypoints
@@ -45,7 +44,7 @@ class DeletePreviousRegistrationControllerSpec extends SpecBase with MockitoSuga
   private val country = Country.euCountries.head
   private val previousSchemeNumbers = PreviousSchemeNumbers("VAT Number")
   private val previousScheme = PreviousSchemeDetails(PreviousScheme.OSSU, previousSchemeNumbers)
-  private val previousRegistration = PreviousRegistrationDetails(country, List(previousScheme))
+  private val previousRegistration = PreviousRegistration(country, List(previousScheme))
 
   private def deletePreviousRegistrationRoute(waypoints: Waypoints) =
     controllers.previousRegistrations.routes.DeletePreviousRegistrationController.onPageLoad(waypoints, index).url

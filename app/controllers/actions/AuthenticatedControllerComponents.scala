@@ -16,7 +16,7 @@
 
 package controllers.actions
 
-import models.requests.{DataRequest, OptionalDataRequest}
+import models.requests.{AuthenticatedMandatoryRegistrationRequest, DataRequest, OptionalDataRequest}
 import play.api.http.FileMimeTypes
 import play.api.i18n.{Langs, MessagesApi}
 import play.api.mvc.*
@@ -41,17 +41,27 @@ trait AuthenticatedControllerComponents extends MessagesControllerComponents {
 
   def requireData: DataRequiredAction
 
-  def identifyAndGetData(inAmend: Boolean = false): ActionBuilder[DataRequest, AnyContent] =
+  def requireRegistration: RegistrationRequiredAction
+
+  def identifyAndGetData(inAmend: Boolean = false): ActionBuilder[DataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
       getData andThen
       requireData(inAmend)
+  }
 
-  def identifyAndGetOptionalData: ActionBuilder[OptionalDataRequest, AnyContent] =
+  def identifyAndGetOptionalData: ActionBuilder[OptionalDataRequest, AnyContent] = {
     actionBuilder andThen
       identify andThen
       getData
+  }
 
+  def identifyAndRequireRegistration(
+                                      inAmend: Boolean
+                                    ): ActionBuilder[AuthenticatedMandatoryRegistrationRequest, AnyContent] = {
+    identifyAndGetData(inAmend) andThen
+      requireRegistration()
+  }
 }
 
 case class DefaultAuthenticatedControllerComponents @Inject()(
@@ -67,5 +77,6 @@ case class DefaultAuthenticatedControllerComponents @Inject()(
                                                                getData: DataRetrievalAction,
                                                                requireData: DataRequiredAction,
                                                                clientIdentify: ClientIdentifierAction,
-                                                               clientGetData: ClientDataRetrievalAction
+                                                               clientGetData: ClientDataRetrievalAction,
+                                                               requireRegistration: RegistrationRequiredAction
                                                              ) extends AuthenticatedControllerComponents

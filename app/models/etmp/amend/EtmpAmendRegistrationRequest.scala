@@ -16,11 +16,13 @@
 
 package models.etmp.amend
 
+import logging.Logging
 import models.UserAnswers
 import models.etmp.*
-import models.etmp.EtmpRegistrationRequest.buildEtmpRegistrationRequest
 import models.etmp.display.{EtmpDisplayRegistration, EtmpDisplaySchemeDetails}
+import pages.{ClientHasUtrNumberPage, ClientHasVatNumberPage, ClientTaxReferencePage, ClientsNinoNumberPage}
 import play.api.libs.json.{Json, OFormat}
+
 import java.time.LocalDate
 
 case class EtmpAmendRegistrationRequest(
@@ -34,7 +36,7 @@ case class EtmpAmendRegistrationRequest(
                                          bankDetails: Option[EtmpBankDetails]
                                        )
 
-object EtmpAmendRegistrationRequest {
+object EtmpAmendRegistrationRequest extends EtmpCommonRegistrationRequest with Logging {
 
   implicit val format: OFormat[EtmpAmendRegistrationRequest] = Json.format[EtmpAmendRegistrationRequest]
 
@@ -46,24 +48,24 @@ object EtmpAmendRegistrationRequest {
                                          rejoin: Boolean = false
                                        ): EtmpAmendRegistrationRequest = {
 
-    val etmpRegistrationRequest = buildEtmpRegistrationRequest(answers, commencementDate)
+    val taxIdType: EtmpIdType = determineTaxIdType(answers)
 
     EtmpAmendRegistrationRequest(
-      administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntAmend),
+      administration = EtmpAdministration(messageType = EtmpMessageType.IOSSIntAmendClient),
       changeLog = EtmpAmendRegistrationChangeLog(
-        tradingNames = registration.tradingNames != etmpRegistrationRequest.tradingNames,
-        fixedEstablishments = registration.schemeDetails.euRegistrationDetails != etmpRegistrationRequest.schemeDetails.euRegistrationDetails,
-        contactDetails = contactDetailsDiff(registration.schemeDetails, etmpRegistrationRequest.schemeDetails),
+        tradingNames = registration.tradingNames != getTradingNames(answers),
+        fixedEstablishments = registration.schemeDetails.euRegistrationDetails != getSchemeDetails(answers, commencementDate).euRegistrationDetails,
+        contactDetails = contactDetailsDiff(registration.schemeDetails, getSchemeDetails(answers, commencementDate)),
         bankDetails = false,
         reRegistration = rejoin,
-        otherAddress = registration.otherAddress != etmpRegistrationRequest.otherAddress
+        otherAddress = registration.otherAddress != getOtherAddress(taxIdType, answers)
       ),
       customerIdentification = EtmpAmendCustomerIdentification(iossNumber),
-      tradingNames = etmpRegistrationRequest.tradingNames,
-      intermediaryDetails = etmpRegistrationRequest.intermediaryDetails,
-      otherAddress = etmpRegistrationRequest.otherAddress,
-      schemeDetails = etmpRegistrationRequest.schemeDetails,
-      bankDetails = etmpRegistrationRequest.bankDetails
+      tradingNames = getTradingNames(answers),
+      intermediaryDetails = None,
+      otherAddress = getOtherAddress(taxIdType, answers),
+      schemeDetails = getSchemeDetails(answers, commencementDate),
+      bankDetails = None
     )
   }
 
@@ -71,5 +73,32 @@ object EtmpAmendRegistrationRequest {
     registrationSchemeDetails.contactName != amendSchemeDetails.contactName ||
       registrationSchemeDetails.businessTelephoneNumber != amendSchemeDetails.businessTelephoneNumber ||
       registrationSchemeDetails.businessEmailId != amendSchemeDetails.businessEmailId
+  }
+
+  private def determineTaxIdType(answers: UserAnswers): EtmpIdType = {
+    answers.get(ClientHasVatNumberPage) match {
+      case Some(true) =>
+        EtmpIdType.VRN
+
+      case _ =>
+        answers.get(ClientHasUtrNumberPage) match {
+          case Some(true) =>
+            EtmpIdType.UTR
+
+          case _ =>
+            if (answers.get(ClientTaxReferencePage).nonEmpty) {
+              EtmpIdType.FTR
+            } else {
+              if (answers.get(ClientsNinoNumberPage).nonEmpty) {
+                EtmpIdType.NINO
+              } else {
+                val message: String = "Client must have a Tax ID type"
+                logger.error(message)
+                val exception = new IllegalStateException(message)
+                throw exception
+              }
+            }
+        }
+    }
   }
 }

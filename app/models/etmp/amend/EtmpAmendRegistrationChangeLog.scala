@@ -18,14 +18,16 @@ package models.etmp.amend
 
 import play.api.libs.json.{Json, OFormat}
 
-case class EtmpAmendRegistrationChangeLog(tradingNames: Boolean,
-                                          fixedEstablishments: Boolean,
-                                          contactDetails: Boolean,
-                                          bankDetails: Boolean,
-                                          reRegistration: Boolean,
-                                          otherAddress: Boolean)
+case class EtmpAmendRegistrationChangeLog(
+                                           tradingNames: Boolean,
+                                           fixedEstablishments: Boolean,
+                                           contactDetails: Boolean,
+                                           bankDetails: Boolean,
+                                           reRegistration: Boolean,
+                                           otherAddress: Boolean
+                                         )
+
 object EtmpAmendRegistrationChangeLog {
 
   implicit val format: OFormat[EtmpAmendRegistrationChangeLog] = Json.format[EtmpAmendRegistrationChangeLog]
-
 }

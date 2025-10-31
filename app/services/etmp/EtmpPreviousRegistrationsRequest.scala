@@ -17,11 +17,11 @@
 package services.etmp
 
 import logging.Logging
-import models.{Country, CountryWithValidationDetails, UserAnswers}
+import models.PreviousScheme.toEmtpSchemeType
 import models.domain.PreviousSchemeDetails
 import models.etmp.EtmpPreviousEuRegistrationDetails
-import models.previousRegistrations.{NonCompliantDetails, PreviousRegistrationDetails}
-import models.PreviousScheme.toEmtpSchemeType
+import models.previousRegistrations.NonCompliantDetails
+import models.{Country, CountryWithValidationDetails, UserAnswers}
 import pages.previousRegistrations.PreviouslyRegisteredPage
 import queries.previousRegistrations.AllPreviousRegistrationsQuery
 
@@ -84,7 +84,6 @@ trait EtmpPreviousRegistrationsRequest extends Logging {
       case _ =>
         None
     }
-
   }
 }
 
