@@ -34,7 +34,7 @@ object ClientBusinessNameSummary {
            sourcePage: CheckAnswersPage
          )(implicit messages: Messages): Option[SummaryListRow] = {
     answers.get(ClientBusinessNamePage).map { answer =>
-
+      
       val messageKey: String = answers.get(ClientCountryBasedPage) match {
         case Some(country) if country.code.startsWith(ukCountryCodeAreaPrefix)=>
           messages("clientBusinessName.checkYourAnswersLabel")

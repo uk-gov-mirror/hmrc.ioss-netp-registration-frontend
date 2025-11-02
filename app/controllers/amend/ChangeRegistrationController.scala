@@ -80,7 +80,7 @@ class ChangeRegistrationController @Inject()(
             },
             ClientHasUtrNumberSummary.rowWithoutAction(waypoints, request.userAnswers),
             ClientUtrNumberSummary.rowWithoutAction(waypoints, request.userAnswers),
-            ClientsNinoNumberSummary.row(waypoints, request.userAnswers, thisPage),
+            ClientsNinoNumberSummary.rowWithoutAction(waypoints, request.userAnswers),
             if(hasEtmpOtherAddress.isDefined && countryIsUk){
               ClientBusinessAddressSummary.changeUkBasedRegRow(waypoints, request.userAnswers, thisPage)
             } else if (hasEtmpOtherAddress.isDefined && !countryIsUk) {

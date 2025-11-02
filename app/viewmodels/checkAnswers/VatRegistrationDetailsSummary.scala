@@ -16,8 +16,8 @@
 
 package viewmodels.checkAnswers
 
-import models.UserAnswers
-import pages.{CheckAnswersPage, Waypoints}
+import models.{Country, UserAnswers}
+import pages.{CheckAnswersPage, ClientCountryBasedPage, Waypoints}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
@@ -86,15 +86,19 @@ object VatRegistrationDetailsSummary {
         val clientName: String = vatCustomerInfo.organisationName.orElse(vatCustomerInfo.individualName).getOrElse(
           throw new IllegalStateException("Unable to retrieve a required client Name from the vat information")
         )
+        val nonUkCountry: Country = answers.get(ClientCountryBasedPage).getOrElse(
+          throw new IllegalStateException("Unable to retrieve country for non uk client")
+        )
 
         Some(SummaryListRowViewModel(
-          key = "clientBusinessName.checkYourAnswersLabel",
-          value = ValueViewModel(HtmlContent(HtmlFormat.escape(clientName).toString)),
-          actions = Seq(
-            ActionItemViewModel("site.change", sourcePage.changeLink(waypoints, sourcePage).url)
-              .withVisuallyHiddenText(messages("clientBusinessName.change.hidden"))
-          )
-        ))
+            key = messages("clientBusinessName.checkYourAnswersLabel.withCountry", nonUkCountry.name),
+            value = ValueViewModel(HtmlContent(HtmlFormat.escape(clientName).toString)),
+            actions = Seq(
+              ActionItemViewModel("site.change", sourcePage.changeLink(waypoints, sourcePage).url)
+                .withVisuallyHiddenText(messages("clientBusinessName.change.hidden"))
+            )
+          ))
+
       case(_, _) =>
         None
     }
