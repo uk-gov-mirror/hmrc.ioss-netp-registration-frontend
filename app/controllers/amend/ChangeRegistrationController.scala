@@ -30,6 +30,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.RegistrationService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.CompletionChecks
 import utils.FutureSyntax.FutureOps
 import viewmodels.WebsiteSummary
 import viewmodels.checkAnswers.*
@@ -46,7 +47,7 @@ class ChangeRegistrationController @Inject()(
                                               cc: AuthenticatedControllerComponents,
                                               view: ChangeRegistrationView,
                                               registrationService: RegistrationService
-                                            )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging with GetClientCompanyName {
+                                            )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with Logging with GetClientCompanyName with CompletionChecks {
 
   protected val controllerComponents: MessagesControllerComponents = cc
 
@@ -120,10 +121,14 @@ class ChangeRegistrationController @Inject()(
 
         Ok(view(waypoints, companyName, request.iossNumber, registrationDetailsList, importOneStopShopDetailsList)).toFuture
       }(request.request)
+        val isValid: Boolean = validate()
+
+        Ok(view(waypoints, companyName, request.getIossNumber(), registrationDetailsList, importOneStopShopDetailsList, isValid)).toFuture
+      }
   }
 
 
-  def onSubmit(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndRequireRegistration(inAmend = true).async {
+  def onSubmit(waypoints: Waypoints, incompletePrompt: Boolean): Action[AnyContent] = cc.identifyAndRequireRegistration(inAmend = true).async {
     implicit request =>
 
       registrationService.amendRegistration(

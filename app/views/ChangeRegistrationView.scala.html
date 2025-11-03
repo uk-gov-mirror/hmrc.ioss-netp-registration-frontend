@@ -16,6 +16,8 @@
 
 @import viewmodels.InputWidth._
 @import components.CancelAmendRegistrationButton
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukWarningText
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 
 @this(
         layout: templates.Layout,
@@ -23,12 +25,20 @@
         govukSummaryList: GovukSummaryList,
         govukErrorSummary: GovukErrorSummary,
         govukInput: GovukInput,
-        button: CancelAmendRegistrationButton
+        button: CancelAmendRegistrationButton,
+        govukWarningText: GovukWarningText
 )
 
-@(waypoints: Waypoints, companyName: String, iossNum: String, list: SummaryList, ilist: SummaryList)(implicit request: Request[_], messages: Messages)
+@(waypoints: Waypoints, companyName: String, iossNum: String, list: SummaryList, ilist: SummaryList, isValid: Boolean)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("changeRegistration.title",companyName )), showBackLink = false) {
+
+    @if(!isValid) {
+        @govukWarningText(WarningText(
+            iconFallbackText = Option(messages("site.warning")),
+            content = Text(messages("error.missing_answers"))
+        ))
+    }
 
     <h1 class="govuk-heading-xl govuk-!-margin-0">@messages("changeRegistration.heading", companyName)</h1>
 
@@ -44,10 +54,19 @@
 
     <p class="govuk-body">@messages("changeRegistration.info.p1")</p>
 
-    @formHelper(action = controllers.amend.routes.ChangeRegistrationController.onSubmit(waypoints)) {
-        @button("site.confirm")
+    @if(isValid) {
+        @formHelper(action = controllers.amend.routes.ChangeRegistrationController.onSubmit(waypoints, incompletePrompt = false)) {
+            @button("site.confirm")
+        }
+    } else {
+        <h2 class="govuk-heading-m push--top">@messages("error.missing_answers_header")</h2>
+        <p class="govuk-body">@messages("error.missing_answers_prompt.general")</p>
+
+        @formHelper(action = controllers.amend.routes.ChangeRegistrationController.onSubmit(waypoints, incompletePrompt = true)) {
+            @button("error.resolve_missing_answers")
+        }
     }
-    
+
     <div id="processing-wheel" hidden>
         <div id="processing" aria-live="polite" class="govuk-!-margin-bottom-9">
             <h2 class="govuk-heading-m">
