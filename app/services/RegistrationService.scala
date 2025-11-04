@@ -82,11 +82,15 @@ class RegistrationService @Inject()(
 
     val hasUkBasedAddress: Boolean = isUkBasedNetp(registrationWrapper.vatInfo, registrationWrapper.etmpDisplayRegistration.otherAddress)
 
+    val hasUkVatNum: Boolean = registrationWrapper.etmpDisplayRegistration.customerIdentification.idType == EtmpIdType.VRN
+
     val userAnswers = for {
       businessBasedInUk <- UserAnswers(
         id = userId,
         vatInfo = registrationWrapper.vatInfo
       ).set(BusinessBasedInUKPage, hasUkBasedAddress)
+
+      hasUkVatNumberUA <- businessBasedInUk.set(ClientHasVatNumberPage, hasUkVatNum)
 
       taxIdUA <- getTaxIdentifierAndNum(businessBasedInUk, registrationWrapper.etmpDisplayRegistration.customerIdentification)
 
@@ -172,11 +176,14 @@ class RegistrationService @Inject()(
   }
 
   private[services] def getTaxIdentifierAndNum(userAnswers: UserAnswers, customerInfo: EtmpDisplayCustomerIdentification): Try[UserAnswers] = {
+
     customerInfo.idType match {
-      case EtmpIdType.VRN => for {
-        hasUkVatUA <- userAnswers.set(ClientHasVatNumberPage, true)
-        userAnswersWithUkVatNum <- hasUkVatUA.set(ClientVatNumberPage, customerInfo.idValue)
-      } yield userAnswersWithUkVatNum
+      case EtmpIdType.VRN =>
+        for {
+          userAnswersWithUkVatNum <- userAnswers.set(ClientVatNumberPage, customerInfo.idValue)
+        } yield {
+          userAnswersWithUkVatNum
+        }
 
       case EtmpIdType.UTR =>
         for {

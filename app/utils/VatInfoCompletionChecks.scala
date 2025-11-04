@@ -40,9 +40,9 @@ object VatInfoCompletionChecks extends CompletionChecks {
       case Some(false) =>
         true
       case Some(true) =>
-        request.userAnswers.get(BusinessBasedInUKPage) match {
+        request.userAnswers.get(ClientHasVatNumberPage) match {
           case Some(true) =>
-            request.userAnswers.get(ClientHasVatNumberPage).isDefined
+            request.userAnswers.get(ClientVatNumberPage).isDefined
           case Some(false) =>
             true
           case None =>
@@ -51,6 +51,7 @@ object VatInfoCompletionChecks extends CompletionChecks {
       case None =>
         false
     }
+
   }
 
   def incompleteHasVatNumberRedirect(waypoints: Waypoints)(implicit request: DataRequest[AnyContent]): Option[Result] = {
@@ -132,7 +133,7 @@ object VatInfoCompletionChecks extends CompletionChecks {
         request.userAnswers.get(ClientHasVatNumberPage) match {
           case Some(false) =>
             request.userAnswers.get(ClientHasUtrNumberPage) match {
-              case Some(true)  =>
+              case Some(true) =>
                 request.userAnswers.get(ClientUtrNumberPage).isDefined
               case Some(false) =>
                 true
@@ -324,7 +325,7 @@ object VatInfoCompletionChecks extends CompletionChecks {
             None
         }
       case _ =>
-       None
+        None
     }
   }
 }

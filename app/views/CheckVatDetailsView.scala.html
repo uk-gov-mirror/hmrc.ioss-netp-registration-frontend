@@ -21,13 +21,16 @@
 @import viewmodels.{CheckVatDetailsViewModel, LegendSize}
 @import viewmodels.govuk.all._
 @import components.ButtonGroup
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukWarningText
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukSummaryList: GovukSummaryList,
-    button: ButtonGroup
+    button: ButtonGroup,
+    govukWarningText: GovukWarningText
 )
 
 @(
@@ -36,14 +39,22 @@
     summaryList: SummaryList,
     companyName: String,
     isBasedInUk: Boolean,
-    hasVatNumber: Boolean
+    hasVatNumber: Boolean,
+    isValid: Boolean
 )(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkVatDetails.title", companyName))) {
 
-    @formHelper(action = routes.CheckVatDetailsController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
+    @if(!isValid) {
+        @govukWarningText(WarningText(
+            iconFallbackText = Option(messages("site.warning")),
+            content = Text(messages("error.missing_answers"))
+        ))
+    }
 
-        <h1 class="govuk-heading-l">@messages("checkVatDetails.heading", companyName)</h1>
+    <h1 class="govuk-heading-l">@messages("checkVatDetails.heading", companyName)</h1>
+
+
 
         @{
             val maybeAddressRow = if (isBasedInUk) {
@@ -63,7 +74,16 @@
         @if(isBasedInUk && hasVatNumber) {
             <p class="govuk-body">@messages("checkVatDetails.info.p1")</p>
         }
+    @if(isValid) {
+        @formHelper(action = routes.CheckVatDetailsController.onSubmit(waypoints, incompletePrompt = false), Symbol("autoComplete") -> "off") {
+            @button("site.continue", CheckVatDetailsPage().route(waypoints).url, waypoints)
+        }
+    } else {
+        <h2 class="govuk-heading-m push--top">@messages("error.missing_answers_header")</h2>
+        <p class="govuk-body">@messages("error.missing_answers_prompt.general")</p>
 
-        @button("site.continue", CheckVatDetailsPage().route(waypoints).url, waypoints)
+        @formHelper(action = routes.CheckVatDetailsController.onSubmit(waypoints, incompletePrompt = true), Symbol("autoComplete") -> "off") {
+            @button("error.resolve_missing_answers", CheckVatDetailsPage().route(waypoints).url, waypoints)
+        }
     }
 }

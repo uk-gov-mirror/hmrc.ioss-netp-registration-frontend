@@ -51,7 +51,6 @@ object ClientHasVatNumberSummary {
                       )(implicit messages: Messages): Option[SummaryListRow] = {
 
     val maybeClientVatNumPage: Option[Boolean] = answers.get(ClientHasVatNumberPage)
-    if (maybeClientVatNumPage.isDefined) {
       maybeClientVatNumPage.map { answer =>
 
         val value = if (answer) "site.yes" else "site.no"
@@ -62,12 +61,5 @@ object ClientHasVatNumberSummary {
         )
 
       }
-    } else {
-
-      Some(SummaryListRowViewModel(
-        key = "clientHasVatNumber.checkYourAnswersLabel",
-        value = ValueViewModel("site.no")
-      ))
-    }
   }
 }

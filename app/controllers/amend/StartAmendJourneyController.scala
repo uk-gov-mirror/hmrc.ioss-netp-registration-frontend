@@ -56,7 +56,7 @@ class StartAmendJourneyController @Inject()(
               _ <- cc.sessionRepository.set(originalAnswers)
             } yield {
 
-              Redirect(routes.ChangeRegistrationController.onPageLoad().url)
+              Redirect(routes.ChangeRegistrationController.onPageLoad(waypoints).url)
             }
 
           case Left(error) =>
