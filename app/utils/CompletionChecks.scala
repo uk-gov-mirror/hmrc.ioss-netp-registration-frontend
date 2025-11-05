@@ -72,8 +72,6 @@ trait CompletionChecks {
       hasWebsiteValid()
   }
 
-  //def validateAmend()
-
   def getFirstValidationErrorRedirect(waypoints: Waypoints)(implicit request: DataRequest[AnyContent]): Option[Result] = {
     (incompleteBusinessBasedInUkRedirect(waypoints) ++
       incompleteHasVatNumberRedirect(waypoints) ++

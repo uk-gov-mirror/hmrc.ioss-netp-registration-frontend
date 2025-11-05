@@ -58,7 +58,6 @@ class StartAmendJourneyController @Inject()(
 
               Redirect(routes.ChangeRegistrationController.onPageLoad(waypoints).url)
             }
-
           case Left(error) =>
             val exception = new Exception(error.body)
             logger.error(exception.getMessage, exception)

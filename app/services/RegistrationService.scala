@@ -119,7 +119,7 @@ class RegistrationService @Inject()(
       addressDetailsUA <- setNonVatAddressDetails(websiteUA, maybeOtherAddress)
 
       setClientCountryUA <- setClientCountry(addressDetailsUA, maybeOtherAddress)
-      
+
     } yield setClientCountryUA
 
     Future.fromTry(userAnswers)

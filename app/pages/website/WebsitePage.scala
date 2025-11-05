@@ -51,5 +51,5 @@ case class WebsitePage(index: Index) extends QuestionPage[Website] with AddToLis
       super.cleanup(value, userAnswers)
     }
   }
-  
+
 }

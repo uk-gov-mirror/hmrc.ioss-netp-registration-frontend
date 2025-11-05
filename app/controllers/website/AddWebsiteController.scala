@@ -29,6 +29,7 @@ import queries.DeriveNumberOfWebsites
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.AddWebsiteView
 import utils.FutureSyntax.FutureOps
+import utils.AmendWaypoints._
 import viewmodels.WebsiteSummary
 
 import javax.inject.Inject
@@ -44,7 +45,7 @@ class AddWebsiteController @Inject()(
   private val form = formProvider()
   protected val controllerComponents: MessagesControllerComponents = cc
 
-  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndGetData().async {
+  def onPageLoad(waypoints: Waypoints): Action[AnyContent] = cc.identifyAndGetData(waypoints.inAmend).async {
     implicit request =>
       getNumberOfWebsites(waypoints) {
         number =>

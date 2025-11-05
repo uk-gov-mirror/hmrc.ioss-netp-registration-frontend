@@ -18,10 +18,12 @@ package pages.website
 
 import config.Constants
 import models.{Index, UserAnswers}
+import pages.amend.ChangeRegistrationPage
 import pages.{AddItemPage, BusinessContactDetailsPage, JourneyRecoveryPage, Page, QuestionPage, Waypoints}
 import play.api.libs.json.{JsObject, JsPath}
 import play.api.mvc.Call
 import queries.{Derivable, DeriveNumberOfWebsites}
+import utils.AmendWaypoints._
 
 object AddWebsitePage {
   val normalModeUrlFragment: String = "add-website-address"
@@ -45,8 +47,15 @@ final case class AddWebsitePage(override val index: Option[Index] = None) extend
     case _ => false
   }
 
-  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page =
-    navigate(answers, nextPage = BusinessContactDetailsPage)
+  override protected def nextPageNormalMode(waypoints: Waypoints, answers: UserAnswers): Page = {
+    val isAmendMode = waypoints.inAmend
+
+    if (isAmendMode) {
+      navigate(answers, nextPage = ChangeRegistrationPage)
+    } else {
+      navigate(answers, nextPage = BusinessContactDetailsPage)
+    }
+  }
 
   private def navigate(answers: UserAnswers, nextPage: Page): Page =
     (answers.get(AddWebsitePage()), answers.get(DeriveNumberOfWebsites)) match

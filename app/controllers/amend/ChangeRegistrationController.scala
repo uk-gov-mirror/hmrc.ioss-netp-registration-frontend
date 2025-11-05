@@ -59,6 +59,8 @@ class ChangeRegistrationController @Inject()(
 
       val thisPage = ChangeRegistrationPage
 
+      val waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(thisPage, CheckMode, ChangeRegistrationPage.urlFragment))
+
       val clientBasedInUk = request.userAnswers.get(BusinessBasedInUKPage).getOrElse(false)
       val clientHasUkAddress: Option[Country] = request.userAnswers.get(ClientCountryBasedPage)
       val countryIsUk: Boolean = clientHasUkAddress match
