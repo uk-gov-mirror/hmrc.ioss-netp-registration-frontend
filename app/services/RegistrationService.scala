@@ -285,7 +285,8 @@ class RegistrationService @Inject()(
     Country.fromCountryCodeAllCountries(countryCode) match {
       case Some(country) => country
       case _ =>
-        val exception = new IllegalStateException(s"Unable to find country $countryCode")
+        val exception = new IllegalStateException(
+          s"Unable to retrieve a Country from the Country Code [$countryCode] provided in the Vat information returned from ETMP for amend journey.")
         logger.error(exception.getMessage, exception)
         throw exception
     }

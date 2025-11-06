@@ -350,7 +350,6 @@ class RegistrationServiceSpec extends SpecBase with WireMockHelper with BeforeAn
         .getTaxIdentifierAndNum(userAnswers = emptyUserAnswers, customerInfo = vatCustomerId).success.value
 
       val expectedUserAnswers = emptyUserAnswers
-        .set(ClientHasVatNumberPage, true).success.value
         .set(ClientVatNumberPage, vatCustomerId.idValue).success.value
 
       result mustBe expectedUserAnswers

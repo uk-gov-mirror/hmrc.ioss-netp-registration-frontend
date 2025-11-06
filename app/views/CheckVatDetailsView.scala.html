@@ -21,17 +21,14 @@
 @import viewmodels.{CheckVatDetailsViewModel, LegendSize}
 @import viewmodels.govuk.all._
 @import components.ButtonGroup
-@import uk.gov.hmrc.govukfrontend.views.html.components.GovukWarningText
-@import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukSummaryList: GovukSummaryList,
-    button: ButtonGroup,
-    govukWarningText: GovukWarningText
-)
+    button: ButtonGroup
+    )
 
 @(
     waypoints: Waypoints,
@@ -39,51 +36,34 @@
     summaryList: SummaryList,
     companyName: String,
     isBasedInUk: Boolean,
-    hasVatNumber: Boolean,
-    isValid: Boolean
-)(implicit request: Request[_], messages: Messages)
+    hasVatNumber: Boolean
+    )(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkVatDetails.title", companyName))) {
 
-    @if(!isValid) {
-        @govukWarningText(WarningText(
-            iconFallbackText = Option(messages("site.warning")),
-            content = Text(messages("error.missing_answers"))
-        ))
-    }
+@formHelper(action = routes.CheckVatDetailsController.onSubmit(waypoints), Symbol("autoComplete") -> "off") {
 
     <h1 class="govuk-heading-l">@messages("checkVatDetails.heading", companyName)</h1>
 
-
-
-        @{
-            val maybeAddressRow = if (isBasedInUk) {
-                viewModel.map { model =>
-                    SummaryListRow(
-                        key = Key(content = Text(messages("checkVatDetails.address"))),
-                        value = Value(content = HtmlContent(model.formattedAddress.body))
-                    )
-                }
-            } else None
+    @{
+        val maybeAddressRow = if (isBasedInUk) {
+            viewModel.map { model =>
+            SummaryListRow(
+            key = Key(content = Text(messages("checkVatDetails.address"))),
+            value = Value(content = HtmlContent(model.formattedAddress.body))
+            )
+            }
+        } else None
 
             val rowsWithAddress = summaryList.rows ++ maybeAddressRow.toSeq
 
             govukSummaryList(summaryList.copy(rows = rowsWithAddress))
-        }
+    }
 
         @if(isBasedInUk && hasVatNumber) {
             <p class="govuk-body">@messages("checkVatDetails.info.p1")</p>
         }
-    @if(isValid) {
-        @formHelper(action = routes.CheckVatDetailsController.onSubmit(waypoints, incompletePrompt = false), Symbol("autoComplete") -> "off") {
-            @button("site.continue", CheckVatDetailsPage().route(waypoints).url, waypoints)
-        }
-    } else {
-        <h2 class="govuk-heading-m push--top">@messages("error.missing_answers_header")</h2>
-        <p class="govuk-body">@messages("error.missing_answers_prompt.general")</p>
 
-        @formHelper(action = routes.CheckVatDetailsController.onSubmit(waypoints, incompletePrompt = true), Symbol("autoComplete") -> "off") {
-            @button("error.resolve_missing_answers", CheckVatDetailsPage().route(waypoints).url, waypoints)
-        }
+        @button("site.continue", CheckVatDetailsPage().route(waypoints).url, waypoints)
     }
 }

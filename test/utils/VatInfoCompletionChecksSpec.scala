@@ -119,6 +119,7 @@ class VatInfoCompletionChecksSpec extends SpecBase with MockitoSugar {
         val userAnswers = emptyUserAnswersWithVatInfo
           .set(BusinessBasedInUKPage, true).success.value
           .set(ClientHasVatNumberPage, true).success.value
+          .set(ClientVatNumberPage, vatNumber).success.value
 
         val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 

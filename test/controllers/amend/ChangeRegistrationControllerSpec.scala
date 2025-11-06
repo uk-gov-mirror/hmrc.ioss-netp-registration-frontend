@@ -21,8 +21,8 @@ import config.Constants.maxSchemes
 import models.domain.{PreviousRegistration, PreviousSchemeDetails, VatCustomerInfo}
 import models.etmp.amend.AmendRegistrationResponse
 import models.etmp.display.EtmpDisplayRegistration
-import models.previousRegistrations.NonCompliantDetails
-import models.{CheckMode, ClientBusinessName, DesAddress, TradingName, UserAnswers}
+import models.previousRegistrations.NonCompliantDetails, PreviousRegistrationDetails}
+import models.{CheckMode, ClientBusinessName, DesAddress, TradingName, UserAnswers, Website}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalacheck.Gen
@@ -38,6 +38,7 @@ import play.api.inject
 import play.api.inject.bind
 import play.api.test.Helpers.*
 import play.api.test.{FakeRequest, Helpers}
+import queries.{AllWebsites, IossNumberQuery, OriginalRegistrationQuery}
 import queries.euDetails.AllEuDetailsQuery
 import queries.previousRegistrations.AllPreviousRegistrationsQuery
 import queries.tradingNames.AllTradingNamesQuery
@@ -61,6 +62,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
   private val amendYourAnswersPage = ChangeRegistrationPage
   private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(amendYourAnswersPage, CheckMode, amendYourAnswersPage.urlFragment))
   private val companyName: String = "Company Name"
+
+  private val waypoints: Waypoints = EmptyWaypoints.setNextWaypoint(Waypoint(ChangeRegistrationPage, CheckMode, ChangeRegistrationPage.urlFragment))
 
   override val vatCustomerInfo: VatCustomerInfo = {
     VatCustomerInfo(
@@ -117,6 +120,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       .set(HasFixedEstablishmentPage, true).success.value
       .set(AllEuDetailsQuery, List(arbitraryEuDetails.arbitrary.sample.value)).success.value
       .set(BusinessContactDetailsPage, businessContactDetails).success.value
+      .set(AllWebsites, List(Website("www.example.com"))).success.value
 
   private val nonUkBasedCompleteUserAnswersWithVatInfo: UserAnswers =
     basicUserAnswersWithVatInfo
@@ -131,6 +135,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       .set(HasFixedEstablishmentPage, true).success.value
       .set(AllEuDetailsQuery, List(arbitraryEuDetails.arbitrary.sample.value)).success.value
       .set(BusinessContactDetailsPage, businessContactDetails).success.value
+      .set(AllWebsites, List(Website("www.example.com"))).success.value
 
   private val ukBasedCompleteUserAnswersWithoutVatInfo: UserAnswers =
     basicUserAnswersWithoutVatInfo
@@ -146,6 +151,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       .set(BusinessContactDetailsPage, businessContactDetails).success.value
       .set(ClientBusinessNamePage, ClientBusinessName(companyName)).success.value
       .set(ClientBusinessAddressPage, arbitraryInternationalAddress.arbitrary.sample.value).success.value
+      .set(AllWebsites, List(Website("www.example.com"))).success.value
 
   private val nonUkBasedCompleteUserAnswersWithoutVatInfo: UserAnswers =
     basicUserAnswersWithoutVatInfo
@@ -162,6 +168,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
       .set(ClientBusinessNamePage, ClientBusinessName(companyName)).success.value
       .set(ClientBusinessAddressPage, arbitraryInternationalAddress.arbitrary.sample.value).success.value
 
+      .set(AllWebsites, List(Website("www.example.com"))).success.value
 
   private val mockRegistrationService: RegistrationService = mock[RegistrationService]
 
@@ -177,7 +184,7 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
 
           running(application) {
 
-            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad().url)
+            val request = FakeRequest(GET, controllers.amend.routes.ChangeRegistrationController.onPageLoad(waypoints).url)
 
             implicit val msgs: Messages = messages(application)
 
@@ -198,7 +205,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
                 vatCustomerInfo.organisationName.get,
                 iossNumber,
                 registrationList,
-                importOneStopShopDetailsList
+                importOneStopShopDetailsList,
+                isValid = false
               )(request, messages(application)).toString
           }
         }
@@ -230,7 +238,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
                 companyName,
                 iossNumber,
                 registrationList,
-                importOneStopShopDetailsList
+                importOneStopShopDetailsList,
+                isValid = false
               )(request, messages(application)).toString
           }
         }
@@ -262,7 +271,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
               vatCustomerInfo.organisationName.get,
               iossNumber,
               registrationList,
-              importOneStopShopDetailsList
+              importOneStopShopDetailsList,
+              isValid = false
             )(request, messages(application)).toString
           }
         }
@@ -294,7 +304,8 @@ class ChangeRegistrationControllerSpec extends SpecBase with SummaryListFluency 
                 companyName,
                 iossNumber,
                 registrationList,
-                importOneStopShopDetailsList
+                importOneStopShopDetailsList,
+                isValid = false
               )(request, messages(application)).toString
           }
         }

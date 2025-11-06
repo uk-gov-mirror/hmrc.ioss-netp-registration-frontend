@@ -66,7 +66,7 @@ GET         /clients-nino-number                                            cont
 POST        /clients-nino-number                                            controllers.ClientsNinoNumberController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 GET         /confirm-tax-details                                            controllers.CheckVatDetailsController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
-POST        /confirm-tax-details                                            controllers.CheckVatDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean ?= false)
+POST        /confirm-tax-details                                            controllers.CheckVatDetailsController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
 
 GET         /register-different-business                                    controllers.UseOtherAccountController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints)
 
@@ -208,7 +208,7 @@ GET        /client-email-updated/:journeyId                                contr
 GET        /start-amend-journey/:iossNumber                                controllers.amend.StartAmendJourneyController.onPageLoad(iossNumber: String)
 
 GET         /change-your-registration                                      controllers.amend.ChangeRegistrationController.onPageLoad()
-POST        /change-your-registration                                      controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints)
+POST        /change-your-registration                                      controllers.amend.ChangeRegistrationController.onSubmit(waypoints: Waypoints ?= EmptyWaypoints, incompletePrompt: Boolean ?= false)
 
 # Save for later section
 GET        /progress-saved                                                  controllers.saveAndComeBack.SavedProgressController.onPageLoad(waypoints: Waypoints ?= EmptyWaypoints, continueUrl: RedirectUrl)
